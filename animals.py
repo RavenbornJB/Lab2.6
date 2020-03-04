@@ -23,7 +23,10 @@ class Animal:
         :param other: Animal
         :return: bool
         """
-        return self.phylum == other.phylum and self.clas == other.clas
+        if isinstance(other, Animal):
+            return self.phylum == other.phylum and self.clas == other.clas
+        else:
+            raise TypeError
 
 
 class Cat(Animal):

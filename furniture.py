@@ -23,7 +23,10 @@ class Furniture:
         :param other: Furniture
         :return: bool
         """
-        return self.style == other.style and self.assign == other.assign
+        if isinstance(other, Furniture):
+            return self.style == other.style and self.assign == other.assign
+        else:
+            raise TypeError
 
 
 class Chair(Furniture):
