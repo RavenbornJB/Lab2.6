@@ -1,50 +1,35 @@
-from games import game
+from games.setup import *
 
-
-kitchen = game.Room("Kitchen")
-kitchen.set_description("A dank and dirty room buzzing with flies.")
-
-dining_hall = game.Room("Dining Hall")
-dining_hall.set_description("A large room with ornate golden decorations on each wall.")
-
-ballroom = game.Room("Ballroom")
-ballroom.set_description("A vast room with a shiny wooden floor. Huge candlesticks guard the entrance.")
-
-kitchen.link_room(dining_hall, "south")
-dining_hall.link_room(kitchen, "north")
-dining_hall.link_room(ballroom, "west")
-ballroom.link_room(dining_hall, "east")
-
-dave = game.Enemy("Dave", "A smelly zombie")
-dave.set_conversation("What's up, dude! I'm hungry.")
-dave.set_weakness("cheese")
-dining_hall.set_character(dave)
-
-tabitha = game.Enemy("Tabitha", "An enormous spider with countless eyes and furry legs.")
-tabitha.set_conversation("Sssss....I'm so bored...")
-tabitha.set_weakness("book")
-ballroom.set_character(tabitha)
-
-cheese = game.Item("cheese")
-cheese.set_description("A large and smelly block of cheese")
-ballroom.set_item(cheese)
-
-book = game.Item("book")
-book.set_description("A really good book entitled 'Knitting for dummies'")
-dining_hall.set_item(book)
 
 current_room = kitchen
-backpack = []
+inventory = []
+life = 3
 
-dead = False
+print("""
+Welcome to my dungeon-crawler game!
+--------------------
+You have 3 lives.
 
-while not dead:
+Possible commands include:
+north, south, east, west - for moving between rooms.
+talk - for talking with enemies of the room.
+fight - to fight an enemy.
+take - to take an item.
+inventory - to view your inventory
+quit - to end the game.
+""")
+
+while life > 0:
 
     current_room.get_details()
 
-    inhabitant = current_room.get_character()
-    if inhabitant is not None:
-        inhabitant.describe()
+    friend = current_room.get_friend()
+    if friend is not None:
+        friend.describe()
+
+    enemy = current_room.get_enemy()
+    if enemy is not None:
+        enemy.describe()
 
     item = current_room.get_item()
     if item is not None:
@@ -55,43 +40,75 @@ while not dead:
     if command in ["north", "south", "east", "west"]:
         # Move in the given direction
         current_room = current_room.move(command)
+
+    elif command == "inventory":
+        if inventory:
+            for item in inventory:
+                print(f'{item.name} --> {item.get_description()}')
+        else:
+            print('Your inventory is empty')
+
     elif command == "talk":
-        # Talk to the inhabitant - check whether there is one!
-        if inhabitant is not None:
-            inhabitant.talk()
+        # Talk to the character - check whether there is one!
+        if enemy is not None:
+            enemy.talk()
+        if friend is not None:
+            friend.talk()
+            gift = friend.get_item()
+            if gift is not None:
+                print(f"Here, let me give you this. It's a great [{gift.get_name()}].")
+                inventory.append(gift)
+                print("\nYou have acquired an item!")
+                friend.set_item(None)
+
     elif command == "fight":
-        if inhabitant is not None:
-            # Fight with the inhabitant, if there is one
+        if enemy is not None:
+            # Fight with the enemy, if there is one
             print("What will you fight with?")
             fight_with = input()
 
             # Do I have this item?
-            if fight_with in backpack:
+            if fight_with in list(map(game.Item.get_name, inventory)):
 
-                if inhabitant.fight(fight_with):
+                if fight_with == "potion":
+                    inventory.remove(potion)
+                    fight_result = True
+                else:
+                    fight_result = enemy.fight(fight_with)
+
+                if fight_result:
                     # What happens if you win?
                     print("Hooray, you won the fight!")
-                    current_room.character = None
-                    if inhabitant.get_defeated() == 2:
+                    current_room.set_enemy(None)
+                    if enemy.get_defeated() == 2:
                         print("Congratulations, you have vanquished the enemy horde!")
-                        dead = True
+                        break
                 else:
                     # What happens if you lose?
                     print("Oh dear, you lost the fight.")
-                    print("That's the end of the game")
-                    dead = True
+                    life -= 1
+                    if life > 0:
+                        print(f'{life} lives left.')
+                    else:
+                        print("That's the end of the game")
+                        break
             else:
-                print("You don't have a " + fight_with)
+                print(f"You don't have a {fight_with}.")
         else:
-            print("There is no one here to fight with")
+            print("There is no one here to fight with.")
+
     elif command == "take":
         if item is not None:
-            print("You put the " + item.get_name() + " in your backpack")
-            backpack.append(item.get_name())
+            print("You put the " + item.get_name() + " in your inventory")
+            inventory.append(item)
             current_room.set_item(None)
         else:
             print("There's nothing here to take!")
+
+    elif command == "quit":
+        break
+
     else:
-        print("I don't know how to " + command)
+        print("Unknown command.")
 
     print("\n")

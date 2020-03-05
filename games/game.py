@@ -8,20 +8,13 @@ class Room:
         """
         self.__room = room
         self.__description = ""
-        self.__character = None
+        self.__friend = None
+        self.__enemy = None
         self.__item = None
         self.__linked_rooms = {"north": None,
                                "south": None,
                                "west": None,
                                "east": None}
-
-    def set_description(self, description):
-        """
-        Sets a room description.
-        :param description: str
-        :return: None
-        """
-        self.__description = description
 
     def link_room(self, other, direction):
         """
@@ -35,25 +28,48 @@ class Room:
 
     def get_name(self):
         """
-        Returns the room name.
+        Gets a room name.
         :return: str
         """
         return self.__room
 
-    def set_character(self, character):
+    def set_description(self, description):
         """
-        Sets the character in the room.
-        :param character: Enemy
+        Sets a room description.
+        :param description: str
         :return: None
         """
-        self.__character = character
+        self.__description = description
 
-    def get_character(self):
+    def set_friend(self, friend):
         """
-        Gets the character in the room.
+        Sets the friend in the room.
+        :param friend: Friend
+        :return: None
+        """
+        self.__friend = friend
+
+    def get_friend(self):
+        """
+        Gets the friend in the room.
+        :return: Friend
+        """
+        return self.__friend
+
+    def set_enemy(self, enemy):
+        """
+        Sets the enemy in the room.
+        :param enemy: Enemy
+        :return: None
+        """
+        self.__enemy = enemy
+
+    def get_enemy(self):
+        """
+        Gets the enemy in the room.
         :return: Enemy
         """
-        return self.__character
+        return self.__enemy
 
     def set_item(self, item):
         """
@@ -76,7 +92,8 @@ class Room:
         :param direction: str
         :return: Room
         """
-        return self.__linked_rooms[direction]
+        new_room = self.__linked_rooms[direction]
+        return new_room if new_room is not None else self
 
     def get_details(self):
         """
@@ -85,13 +102,71 @@ class Room:
         """
         print(f'''{self.__room}
 --------------------
-{self.__description}''')
+{self.__description}
+''')
         for direction, room in self.__linked_rooms.items():
             if room is not None:
                 print(f'The {room.get_name()} is {direction}')
 
 
-class Enemy:
+class Character:
+
+    def __init__(self, name, description=""):
+        """
+        Initializes a non-player character.
+        :param name: str
+        :param description: str
+        """
+        self.name = name
+        self.__description = description
+        self.__conversation = ""
+
+    def set_conversation(self, conversation):
+        """
+        Sets the conversation for the character.
+        :param conversation: str
+        :return: None
+        """
+        self.__conversation = conversation
+
+    def describe(self):
+        """
+        Describes this character.
+        :return: None
+        """
+        print(f'\n{self.name} is here!\n{self.__description}\n')
+
+    def talk(self):
+        """
+        Makes this character talk to you.
+        :return: None
+        """
+        print(f'[{self.name} says]: {self.__conversation}')
+
+
+class Friend(Character):
+
+    def __init__(self, name, description=""):
+        super().__init__(name, description)
+        self.__gift = None
+
+    def set_item(self, gift):
+        """
+        Sets the gift for the friend.
+        :param gift: Item
+        :return: None
+        """
+        self.__gift = gift
+
+    def get_item(self):
+        """
+        Gets the gift for the friend.
+        :return: Item
+        """
+        return self.__gift
+
+
+class Enemy(Character):
     """Represents a living enemy that inhabits the rooms."""
 
     __defeated_enemies = 0
@@ -102,18 +177,8 @@ class Enemy:
         :param name: str
         :param description: str
         """
-        self.__name = name
-        self.__description = description
-        self.__conversation = ""
+        super().__init__(name, description)
         self.__weakness = None
-
-    def set_conversation(self, conversation):
-        """
-        Sets the conversation for the character.
-        :param conversation: str
-        :return: None
-        """
-        self.__conversation = conversation
 
     def set_weakness(self, weakness):
         """
@@ -123,20 +188,6 @@ class Enemy:
         """
         self.__weakness = weakness
 
-    def describe(self):
-        """
-        Describes this enemy.
-        :return: None
-        """
-        print(f'{self.__name} is here!\n{self.__description}')
-
-    def talk(self):
-        """
-        Makes this enemy talk to you.
-        :return: None
-        """
-        print(f'[{self.__name} says]: {self.__conversation}')
-
     def fight(self, weapon):
         """
         Determines the result of a fight with this enemy.
@@ -145,11 +196,11 @@ class Enemy:
         :return: bool
         """
         if weapon == self.__weakness:
-            print(f'You fend {self.__name} off with the {weapon}')
+            print(f'You fend {self.name} off with the {weapon}')
             Enemy.__defeated_enemies += 1
             return True
         else:
-            print(f'{self.__name} crushes you, puny adventurer!')
+            print(f'{self.name} crushes you, puny adventurer!')
             return False
 
     @classmethod
@@ -169,8 +220,15 @@ class Item:
         Initializes the item.
         :param name: str
         """
-        self.__name = name
+        self.name = name
         self.__description = ""
+
+    def get_name(self):
+        """
+        Gets the name of the item.
+        :return: str
+        """
+        return self.name
 
     def set_description(self, description):
         """
@@ -180,16 +238,16 @@ class Item:
         """
         self.__description = description
 
-    def get_name(self):
+    def get_description(self):
         """
-        Gets the name of the item.
+        Gets the description for the item.
         :return: str
         """
-        return self.__name
+        return self.__description
 
     def describe(self):
         """
         Describes this item.
         :return: None
         """
-        print(f'The [{self.__name}] is here - {self.__description}')
+        print(f'The [{self.name}] is here - {self.__description}')
