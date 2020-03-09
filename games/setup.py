@@ -1,4 +1,4 @@
-from games import game
+import game
 
 
 def create_room(name="Room", description=""):
