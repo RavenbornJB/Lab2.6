@@ -1,4 +1,4 @@
-from setup import *
+from games.setup import *
 
 
 current_room = kitchen
